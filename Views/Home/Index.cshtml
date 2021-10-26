@@ -1,8 +1,59 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<TripsLog>
+
+@{ 
+    ViewBag.Title = "My Trip Log";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<strong><a asp-action="Add" asp-controller="Trip" class="mt-2">Add Trip</a></strong>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Destination</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Accommodations</th>
+            <th>Things To Do</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (TripsLog trips in Model)
+        {
+            <tr>
+                <td>@trips.Dest</td>
+                <td>@trips.StartDate?.ToShortDateString()</td>
+                <td>@trips.EndDate?.ToShortDateString()</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(trips.Acommodation))
+                    {
+                        <div>Accommodation: @trips.Acommodation</div>
+                        @if(!string.IsNullOrEmpty(trips.AcommPhone))
+                        {
+                            <div>Phone: @trips.AcommPhone</div>
+                        }
+
+                        @if(!string.IsNullOrEmpty(trips.AcommEmail))
+                        {
+                            <div>Email: @trips.AcommEmail</div>
+                        }
+                    }
+                </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(trips.ToDo1))
+                    {
+                        <div>@trips.ToDo1</div>
+                    }
+                    @if (!string.IsNullOrEmpty(trips.ToDo2))
+                    {
+                        <div>@trips.ToDo2</div>
+                    }
+                    @if (!string.IsNullOrEmpty(trips.ToDo3))
+                    {
+                        <div>@trips.ToDo3</div>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+ </table>
