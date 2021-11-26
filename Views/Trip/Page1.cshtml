@@ -11,17 +11,26 @@
     <input type="hidden" asp-for="Page"/>
 
     <div class="row form-group">
-        <label asp-for="Trip.Dest">Destination:</label>
-        <input asp-for="Trip.Dest" class="form-control" />
+        <label asp-for="Trip.DestinationId">Destination:</label>
+        <a asp-action="Index" asp-controller="Manage" class="ml-4">Add Destinations</a>
+        <select asp-for="Trip.DestinationId" class="form-control" asp-items="@(new SelectList(Model.Destinations, "DestinationId", "Dest"))">
+            <option value="0"></option>
+        </select>
     </div>
+
     <div class="row form-group">
-        <label asp-for="Trip.Acommodation">Accommodations:</label>
-        <input asp-for="Trip.Acommodation" class="form-control" />
+        <label asp-for="Trip.AccommodationId">Accommodation:</label>
+        <a asp-action="Index" asp-controller="Manage" class="ml-4">Add Accommodations</a>
+        <select asp-for="Trip.AccommodationId" class="form-control" asp-items="@(new SelectList(Model.Accommodations, "AccommodationId", "Name"))">
+            <option value="0"></option>
+        </select>
     </div>
+
     <div class="row form-group">
         <label asp-for="Trip.StartDate">Start Date:</label>
         <input asp-for="Trip.StartDate" class="form-control" />
     </div>
+
     <div class="row form-group">
         <label asp-for="Trip.EndDate">End Date:</label>
         <input asp-for="Trip.EndDate" class="form-control" />

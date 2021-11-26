@@ -10,8 +10,9 @@ namespace TripLog.Models
     {
         public int TripsLogId { get; set; }
 
-        [Required(ErrorMessage = "Please enter destination.")]
-        public string Dest { get; set; }
+        [Range(1, 99999, ErrorMessage = "Please enter destination.")]
+        public int DestinationId { get; set; }
+        public Destination Destination { get; set; }
 
         [Required(ErrorMessage = "Please enter start date.")]
         public DateTime? StartDate { get; set; }
@@ -19,16 +20,9 @@ namespace TripLog.Models
         [Required(ErrorMessage = "Please enter end date.")]
         public DateTime? EndDate { get; set; }
 
-        public string Acommodation { get; set; }
+        public int? AccommodationId { get; set; }
+        public Accommodation Accommodation { get; set; }        
 
-        public string AcommPhone { get; set; }
-
-        public string AcommEmail { get; set; }
-        public string ToDo1 { get; set; }
-        public string ToDo2 { get; set; }
-        public string ToDo3 { get; set; }
-
-
-
+        public ICollection<TripActivity> TripActivities { get; set; }
     }
 }

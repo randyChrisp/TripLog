@@ -21,37 +21,34 @@
         @foreach (TripsLog trips in Model)
         {
             <tr>
-                <td>@trips.Dest</td>
+                <td>@trips.Destination.Dest</td>
                 <td>@trips.StartDate?.ToShortDateString()</td>
                 <td>@trips.EndDate?.ToShortDateString()</td>
                 <td>
-                    @if (!string.IsNullOrEmpty(trips.Acommodation))
+                    @if (trips.Accommodation != null)
                     {
-                        <div>Accommodation: @trips.Acommodation</div>
-                        @if(!string.IsNullOrEmpty(trips.AcommPhone))
+                        <div>Accommodation: @trips.Accommodation.Name</div>
+                        @if(!string.IsNullOrEmpty(trips.Accommodation.Phone))
                         {
-                            <div>Phone: @trips.AcommPhone</div>
+                            <div>Phone: @trips.Accommodation.Phone</div>
                         }
 
-                        @if(!string.IsNullOrEmpty(trips.AcommEmail))
+                        @if(!string.IsNullOrEmpty(trips.Accommodation.Email))
                         {
-                            <div>Email: @trips.AcommEmail</div>
+                            <div>Email: @trips.Accommodation.Email</div>
                         }
                     }
                 </td>
                 <td>
-                    @if (!string.IsNullOrEmpty(trips.ToDo1))
+                    @foreach(TripActivity ta in trips.TripActivities)
                     {
-                        <div>@trips.ToDo1</div>
+                        <div>@ta.Activity.ToDo</div>
                     }
-                    @if (!string.IsNullOrEmpty(trips.ToDo2))
-                    {
-                        <div>@trips.ToDo2</div>
-                    }
-                    @if (!string.IsNullOrEmpty(trips.ToDo3))
-                    {
-                        <div>@trips.ToDo3</div>
-                    }
+                </td>
+                <td>
+                    <form asp-action="Delete" asp-controller="Trip">
+                        <button type="submit" name="id" value="@trips.TripsLogId" class="btn btn-primary">Delete</button>
+                    </form>
                 </td>
             </tr>
         }

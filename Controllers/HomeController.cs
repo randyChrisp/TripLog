@@ -10,18 +10,22 @@ namespace TripLog.Controllers
 {
     public class HomeController : Controller
     {
-        private TripContext context { get; set; }
+        private Repository<TripsLog> data { get; set; }
 
         public HomeController(TripContext ctx)
         {
-            context = ctx;
+            data = new Repository<TripsLog>(ctx);
         }
 
         public ViewResult Index()
         {
-            List<TripsLog> trips = context.Trips
-                .OrderBy(s => s.StartDate)
-                .ToList();
+            var options = new QueryOptions<TripsLog>
+            {
+                Includes = "Destination, Accommodation, TripActivities.Activity",
+                OrderBy = t => t.StartDate
+            };
+
+            var trips = data.List(options);            
             return View(trips);
         }
     }

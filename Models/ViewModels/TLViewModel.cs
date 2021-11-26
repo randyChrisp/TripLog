@@ -6,10 +6,14 @@ using TripLog.Models;
 
 namespace TripLog.Models
 {
-    public class TLViewModel
+    public class TLViewModel : SelectViewModel
     {
         public TripsLog Trip { get; set;}
 
-        public int Page { get; set; }        
+        public int Page { get; set; }     
+        
+        public string DestName { get; set; }
+
+        public int[] ToDoActivities { get; set; }
     }
 }

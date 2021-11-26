@@ -2,23 +2,20 @@
 
 @{
     ViewBag.Title = "Add Trip - Page 2";
-    ViewBag.SubHeader = "Add Info for " + Model.Trip.Acommodation;
+    ViewBag.SubHeader = $"Add Things To Do in {Model.DestName} ";
 }
 
 <form asp-action="Add">
     <input type="hidden" asp-for="Page" />
 
+    <p>Hold down the CTRL key to select multiple items</p>
     <div class="row form-group">
-        <label asp-for="Trip.AcommPhone">Phone Number:</label>
-        <input asp-for="Trip.AcommPhone" class="form-control" />
-    </div>
-    <div class="row form-group">
-        <label asp-for="Trip.AcommEmail">Email Address:</label>
-        <input asp-for="Trip.AcommEmail" class="form-control" />
+        <select asp-for="ToDoActivities" class="form-control" asp-items="@(new SelectList(Model.Activities, "ActivityId", "ToDo"))"
+                multiple size="10"></select>
     </div>
 
     <div>
-        <button type="submit" class="btn btn-dark">Next</button>
+        <button type="submit" class="btn btn-dark">Save</button>
         <a asp-action="Clear" class="btn btn-outline-dark">Cancel</a>
     </div>    
 </form>

@@ -9,11 +9,10 @@ namespace TripLog.Controllers
 {
     public class TripController : Controller
     {
-        private TripContext context { get; set; }
-
+        private UnitOfWork data { get; set; }
         public TripController(TripContext ctx)
         {
-            context = ctx;
+            data = new UnitOfWork(ctx);
         }
 
         public RedirectToActionResult Index()
@@ -28,38 +27,37 @@ namespace TripLog.Controllers
         }
 
         [HttpGet]
-        public ViewResult Add(string id)
+        public ViewResult Add(string id = "")
         {
             TLViewModel tLView = new TLViewModel();
 
-            switch (id?.ToLower())
+            switch (id.ToLower())
             {
                 case "page2":
 
-                    string accomm = TempData[nameof(TripsLog.Acommodation)]?.ToString();
-
-                    if (string.IsNullOrWhiteSpace(accomm))
-                    {
-                        tLView.Page = 3;
-                        string destination = TempData.Peek(nameof(TripsLog.Dest)).ToString();
-                        tLView.Trip = new TripsLog { Dest = destination };
-                        return View("Page3", tLView);
-                    }
-
                     tLView.Page = 2;
-                    tLView.Trip = new TripsLog { Acommodation = accomm };
-                    TempData.Keep(nameof(TripsLog.Acommodation));
-                    return View("Page2", tLView);
+                    int destinationId = (int)TempData.Peek(nameof(TripsLog.DestinationId));
+                    tLView.DestName = data.Destinations.Get(destinationId).Dest;
 
-                case "page3":
-
-                    tLView.Page = 3;
-                    tLView.Trip = new TripsLog { Dest = TempData.Peek(nameof(TripsLog.Dest)).ToString() };
-                    return View("Page3", tLView);
+                    tLView.Activities = data.Activities.List(new QueryOptions<Activity>
+                    {
+                        OrderBy = a => a.ToDo
+                    }); 
+                    
+                    return View("Page2", tLView);                
 
                 case "page1":
                 default:
                     tLView.Page = 1;
+                    tLView.Destinations = data.Destinations.List(new QueryOptions<Destination>
+                    { 
+                        OrderBy = d => d.Dest
+                    });
+
+                    tLView.Accommodations = data.Accommodations.List(new QueryOptions<Accommodation>
+                    {
+                        OrderBy = a => a.Name
+                    });
                     return View("Page1", tLView);                   
             }
 
@@ -73,37 +71,80 @@ namespace TripLog.Controllers
                 case 1:
                     if (!ModelState.IsValid)
                     {
+                        tLView.Destinations = data.Destinations.List(new QueryOptions<Destination>
+                        {
+                            OrderBy = d => d.Dest
+                        });
+                        tLView.Accommodations = data.Accommodations.List(new QueryOptions<Accommodation>
+                        {
+                            OrderBy = a => a.Name
+                        });
+
                         return View("Page1", tLView);
                     }
 
-                    TempData[nameof(TripsLog.Dest)] = tLView.Trip.Dest;
-                    TempData[nameof(TripsLog.Acommodation)] = tLView.Trip.Acommodation;
+                    TempData[nameof(TripsLog.DestinationId)] = tLView.Trip.DestinationId;
                     TempData[nameof(TripsLog.StartDate)] = tLView.Trip.StartDate;
                     TempData[nameof(TripsLog.EndDate)] = tLView.Trip.EndDate;
+                    TempData[nameof(TripsLog.AccommodationId)] = (tLView.Trip.AccommodationId.HasValue && tLView.Trip.AccommodationId.Value > 0)
+                        ? tLView.Trip.AccommodationId : 0;
 
                     return RedirectToAction("Add", new { id = "Page2" });
 
                 case 2:
-                    TempData[nameof(TripsLog.AcommPhone)] = tLView.Trip.AcommPhone;
-                    TempData[nameof(TripsLog.AcommEmail)] = tLView.Trip.AcommEmail;
-                    return RedirectToAction("Add", new { id = "Page3" });
 
-                case 3:
-                    tLView.Trip.Dest = TempData[nameof(TripsLog.Dest)].ToString();
-                    tLView.Trip.Acommodation = TempData[nameof(TripsLog.Acommodation)]?.ToString();
-                    tLView.Trip.StartDate = (DateTime)TempData[nameof(TripsLog.StartDate)];
-                    tLView.Trip.EndDate = (DateTime)TempData[nameof(TripsLog.EndDate)];
-                    tLView.Trip.AcommPhone = TempData[nameof(TripsLog.AcommPhone)]?.ToString();
-                    tLView.Trip.AcommEmail = TempData[nameof(TripsLog.AcommEmail)]?.ToString();
+                    tLView.Trip = new TripsLog
+                    {
+                        DestinationId = (int)TempData[nameof(TripsLog.DestinationId)],
+                        StartDate = (DateTime)TempData[nameof(TripsLog.StartDate)],
+                        EndDate = (DateTime)TempData[nameof(TripsLog.EndDate)],
+                        AccommodationId = (int)TempData[nameof(TripsLog.AccommodationId)]
 
-                    context.Trips.Add(tLView.Trip);
-                    context.SaveChanges();
-                    TempData["message"] = "Trip to " + tLView.Trip.Dest + " added.";
+            };
+
+                    if(tLView.Trip.AccommodationId <= 0)
+                    {
+                        tLView.Trip.AccommodationId = null;
+                    }
+
+                    if (tLView.ToDoActivities != null)
+                    {
+                        foreach (int activityId in tLView.ToDoActivities)
+                        {
+                            if (tLView.Trip.TripActivities == null)
+                            {
+                                tLView.Trip.TripActivities = new List<TripActivity>();
+                            }
+
+                            tLView.Trip.TripActivities.Add(new TripActivity { ActivityId = activityId });
+                        }
+                    }
+
+                    data.Trips.Insert(tLView.Trip);
+                    data.Save();
+
+                    Destination destination = data.Destinations.Get(tLView.Trip.DestinationId);
+
+                    
+                    TempData["message"] = $"Trip to {destination.Dest} was added.";
                     return RedirectToAction("Index", "Home");
 
                 default:
                     return RedirectToAction("Index", "Home");
             }
+        }
+
+        [HttpPost]
+        public RedirectToActionResult Delete(int id)
+        {
+            TripsLog trip = data.Trips.Get(id);
+            Destination destination = data.Destinations.Get(trip.DestinationId);
+
+            data.Trips.Delete(trip);
+            data.Save();
+
+            TempData["message"] = $"Trip to {destination.Dest} has been deleted.";
+            return RedirectToAction("Index", "Home");
         }
     }
 }
